@@ -1,0 +1,89 @@
+{
+    "id": "demo@0.1.0",
+    "nodes": {
+        "5": {
+            "id": 5,
+            "data": {
+                "num1": 0,
+                "num2": 0,
+                "preview": "..."
+            },
+            "inputs": {
+                "num1": {
+                    "connections": [
+                        {
+                            "node": 12,
+                            "output": "num",
+                            "data": {}
+                        }
+                    ]
+                },
+                "num2": {
+                    "connections": [
+                        {
+                            "node": 41,
+                            "output": "num",
+                            "data": {}
+                        }
+                    ]
+                }
+            },
+            "outputs": {
+                "num": {
+                    "connections": []
+                }
+            },
+            "position": [
+                824,
+                42
+            ],
+            "name": "Add"
+        },
+        "12": {
+            "id": 12,
+            "data": {
+                "num": 1
+            },
+            "inputs": {},
+            "outputs": {
+                "num": {
+                    "connections": [
+                        {
+                            "node": 5,
+                            "input": "num1",
+                            "data": {}
+                        }
+                    ]
+                }
+            },
+            "position": [
+                410,
+                212
+            ],
+            "name": "Number"
+        },
+        "41": {
+            "id": 41,
+            "data": {
+                "num": 2
+            },
+            "inputs": {},
+            "outputs": {
+                "num": {
+                    "connections": [
+                        {
+                            "node": 5,
+                            "input": "num2",
+                            "data": {}
+                        }
+                    ]
+                }
+            },
+            "position": [
+                407,
+                367.5
+            ],
+            "name": "Number"
+        }
+    }
+}

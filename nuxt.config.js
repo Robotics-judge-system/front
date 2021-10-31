@@ -45,6 +45,7 @@ export default {
 
     // Axios module configuration (https://go.nuxtjs.dev/config-axios)
     axios: {
+        // baseURL: "http://80.89.192.250:8080/",
         baseURL: "http://192.168.0.101:8080/",
         credentials: true
     },
@@ -54,7 +55,7 @@ export default {
                 scheme: 'refresh',
                 token: {
                     property: 'token',
-                    type: "Bearer_"
+                    type: "Bearer"
                 },
                 refreshToken: {
                     property: 'refresh_token',

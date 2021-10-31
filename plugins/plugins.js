@@ -1,10 +1,12 @@
 import Vue from "vue";
 import VueWavify from 'vue-wavify';
 
+
 import { localize, ValidationObserver, ValidationProvider } from 'vee-validate'
 import ru from 'vee-validate/dist/locale/ru.json'
 import { extend } from 'vee-validate'
 import { required, email, min, max, digits, numeric, between, max_value, min_value, regex, confirmed } from 'vee-validate/dist/rules'
+
 
 localize('ru', ru)
 extend('required', required)
@@ -22,3 +24,8 @@ Vue.component('ValidationObserver', ValidationObserver)
 Vue.component('ValidationProvider', ValidationProvider)
 
 Vue.component('vue-wavify', VueWavify)
+
+
+
+
+

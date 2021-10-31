@@ -358,12 +358,24 @@ export default {
     }),
     beforeMount() {
         this.loading = true
+        document.addEventListener("keydown", this.enterKey);
         for (let i = 0; i < 4; i++) {
             Vue.set(this.waves, i, JSON.parse(JSON.stringify(this.defWave)));
         }
         this.loading = false
     },
+    beforeDestroy() {
+        document.removeEventListener("keydown", this.enterKey)
+    },
     methods: {
+        enterKey(e){
+            if(e.code === "Enter"){
+                if(this.state)
+                    this.signIn()
+                else
+                    this.signUp()
+            }
+        },
         signIn() {
             this.reqLoading = true
             console.log('trying to sign in')
