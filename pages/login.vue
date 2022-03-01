@@ -20,7 +20,7 @@
         <v-row no-gutters style="z-index: 2; position: relative; height: 50vh" justify="center">
             <v-form>
                 <ValidationObserver ref="regFields">
-                    <ValidationProvider name="Email" rules="email|required" v-slot="{ errors, valid }">
+                    <ValidationProvider name="Email" vid="email" rules="email|required" v-slot="{ errors, valid }">
                         <v-text-field
                             v-model="email"
                             solo
@@ -45,7 +45,7 @@
                             :success="valid"
                         ></v-text-field>
                     </ValidationProvider>
-                    <ValidationProvider v-if="!state" name="Никнейм" rules="required|min: 3|max: 20" v-slot="{ errors, valid }">
+                    <ValidationProvider v-if="!state" name="Никнейм" vid="username" rules="required|min: 3|max: 20" v-slot="{ errors, valid }">
                         <v-text-field
                             v-model="username"
                             solo
@@ -116,26 +116,26 @@
                         :points="9"
                         :amplitude="20"
                         :speed="0.15"
-                        style="position: fixed; bottom: 0; top: 77vh; left: 0; right: 0;"
-                        :style="`width:${waves[0].width}%`"/>
+                        style="position: fixed; bottom: 0; left: 0; right: 0;"
+                        :style="`width:${waves[0].width}%; top:calc(${waves[0].top}vh + 7vh)`"/>
             <vue-wavify fill="#9f3c4e"
                         :points="7"
                         :amplitude="25"
                         :speed="0.17"
-                        style="position: fixed; bottom: 0; top: 82vh; left: 0; right: 0;"
-                        :style="`width:${waves[0].width}%`"/>
+                        style="position: fixed; bottom: 0; left: 0; right: 0;"
+                        :style="`width:${waves[0].width}%; top:calc(${waves[0].top}vh + 12vh)`"/>
             <vue-wavify fill="#E98145"
                         :points="5"
                         :amplitude="35"
                         :speed="0.19"
                         style="position: fixed; bottom: 0; top: 87vh; left: 0; right: 0;"
-                        :style="`width:${waves[0].width}%`"/>
+                        :style="`width:${waves[0].width}%; top:calc(${waves[0].top}vh + 17vh)`"/>
             <vue-wavify fill="#FBAE3C"
                         :points="3"
                         :amplitude="40"
                         :speed="0.21"
                         style="position: fixed; bottom: 0; top: 92vh; left: 0; right: 0;"
-                        :style="`width:${waves[0].width}%`"/>
+                        :style="`width:${waves[0].width}%; top:calc(${waves[0].top}vh + 22vh)`"/>
         </v-row>
 <!--        <vue-wavify fill="url(#gradient)"
                     :points="4"
@@ -339,60 +339,45 @@
 
 <script>
 import Vue from "vue";
+import Util from "@/mixin/Util";
+
 
 export default {
     layout: "login",
     components: {},
+    mixins: [Util],
     data: () => ({
         state: true,
-        email: '',
-        name: '',
-        username: '',
-        pass: '',
-        pass2: '',
+        email: 'test@test.test',
+        name: 'Test Test',
+        username: 'test5',
+        pass: '123123123',
+        pass2: '123123123',
         loading: false,
         waves: [],
-        defWave: {width: 100},
+        defWave: {width: 100, top: 70},
         interval: null,
         reqLoading: false,
     }),
     beforeMount() {
         this.loading = true
         for (let i = 0; i < 4; i++) {
+            //TODO: В самих волнах по нулевому смотрится только, исправить
             Vue.set(this.waves, i, JSON.parse(JSON.stringify(this.defWave)));
         }
         this.loading = false
     },
     methods: {
-        signIn() {
+        async signIn() {
             this.reqLoading = true
-            console.log('trying to sign in')
-            if (this.interval === null) {
-                this.interval = setInterval(() => {
-                    for (let i = 0; i < 4; i++) {
-                        this.waves[i].width += 0.6
-                    }
-                }, 30)
-            }
+            await this.delay(1000)//TODO: хочу транзишн, но не на задержке))
             this.$auth.loginWith("local", {data: {login: this.email, password: this.pass}})
                 .then(res => {
                     console.log(res)
-                    this.reqLoading = false
-                    this.$router.push("/")
                 })
                 .catch(err => {
+                    this.$toast.error(this.getHumanMessage(err))
                     this.reqLoading = false
-                    console.log(err)
-                    clearInterval(this.interval)
-                    this.interval = setInterval(() => {
-                        for (let i = 0; i < 4; i++) {
-                            this.waves[i].width -= 0.2
-                            if (this.waves[i].width <= 105) {
-                                clearInterval(this.interval)
-                                this.interval = null
-                            }
-                        }
-                    }, 30)
                 })
         },
         signUp() {
@@ -401,20 +386,74 @@ export default {
             this.$refs.regFields.validate().then(res=>{
                 console.log(res)
                 if(res){
-                    this.$axios.$post("/api/v1/register", {username: this.username, name: this.name, password: this.pass, email: this.email})
-                        .then(res=>{
-                            this.reqLoading = false
-                            console.log(res)
-                            this.signIn()
-                        })
+                    let valid = {
+                        username: false,
+                        email: false
+                    }
+                    this.$axios.$post("/v1/registration/validation/username", {username: this.username})
+                        .then(res=>{valid.username = true})
                         .catch(err=>{
-                            this.reqLoading = false
-                            console.log(err)
+                            valid.username = false
+                            this.$refs.regFields.setErrors({
+                                username: ['This username is already taken']
+                            });
                         })
+                    this.$axios.$post("/v1/registration/validation/email", {email: this.email})
+                        .then(res=>{valid.email = true})
+                        .catch(err=>{
+                            valid.email = false
+                            this.$refs.regFields.setErrors({
+                                email: ['This email is already taken']
+                            });
+                        })
+
+                    if(valid.email && valid.email){
+                        this.$axios.$post("/v1/register", {username: this.username, name: this.name, password: this.pass, email: this.email})
+                            .then(res=>{
+                                this.reqLoading = false
+                                console.log(res)
+                                this.signIn()
+                            })
+                    }
+
+                    this.reqLoading = false
                 }
             }).catch(err=>{console.warn(err)})
         },
     },
+    watch: {
+        state(){
+            this.$refs.regFields.reset()
+        },
+
+        reqLoading(nv){
+            if(nv){
+                if (this.interval === null) {
+                    this.interval = setInterval(() => {
+                        for (let i = 0; i < 4; i++) {
+                            this.waves[i].width += 1
+                            if(this.waves[i].top<=100)
+                                this.waves[i].top += 0.5
+                        }
+                    }, 30)
+                }
+            }
+            else{
+                clearInterval(this.interval)
+                this.interval = setInterval(() => {
+                    for (let i = 0; i < 4; i++) {
+                        this.waves[i].width -= 0.2
+                        if(this.waves[i].top>70)
+                            this.waves[i].top -= 0.5
+                        if (this.waves[i].width <= 105) {
+                            clearInterval(this.interval)
+                            this.interval = null
+                        }
+                    }
+                }, 30)
+            }
+        }
+    }
 }
 </script>
 

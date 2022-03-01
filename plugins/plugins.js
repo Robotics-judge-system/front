@@ -5,7 +5,9 @@ import { localize, ValidationObserver, ValidationProvider } from 'vee-validate'
 import ru from 'vee-validate/dist/locale/ru.json'
 import { extend } from 'vee-validate'
 import { required, email, min, max, digits, numeric, between, max_value, min_value, regex, confirmed } from 'vee-validate/dist/rules'
-
+import PerfectScrollbar from 'vue2-perfect-scrollbar'
+import 'vue2-perfect-scrollbar/dist/vue2-perfect-scrollbar.css'
+Vue.use(PerfectScrollbar)
 localize('ru', ru)
 extend('required', required)
 extend('email', email)

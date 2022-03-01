@@ -24,7 +24,8 @@ export default {
     // Plugins to run before rendering page (https://go.nuxtjs.dev/config-plugins)
     plugins: [
         '~/plugins/axios',
-        '~/plugins/plugins'
+        '~/plugins/plugins',
+        '~/plugins/toast'
     ],
 
     // Auto import components (https://go.nuxtjs.dev/config-components)
@@ -34,8 +35,13 @@ export default {
     buildModules: [
         // https://go.nuxtjs.dev/vuetify
         '@nuxtjs/vuetify',
+        '@nuxtjs/moment',
     ],
 
+    moment: {
+        defaultLocale: 'ru',
+        locales: ['ru']
+    },
     // Modules (https://go.nuxtjs.dev/config-modules)
     modules: [
         // https://go.nuxtjs.dev/axios
@@ -45,7 +51,7 @@ export default {
 
     // Axios module configuration (https://go.nuxtjs.dev/config-axios)
     axios: {
-        baseURL: "http://192.168.0.101:8080/",
+        baseURL: "http://192.168.0.101:8080/api/",
         credentials: true
     },
     auth: {
@@ -54,7 +60,7 @@ export default {
                 scheme: 'refresh',
                 token: {
                     property: 'token',
-                    type: "Bearer_"
+                    type: "Bearer "
                 },
                 refreshToken: {
                     property: 'refresh_token',
@@ -66,9 +72,9 @@ export default {
                     autoFetch: true,
                 },
                 endpoints: {
-                    login: {url: '/api/v1/auth/login', method: 'post'},
-                    refresh: {url: '/api/v1/auth/refresh', method: 'post'},
-                    user: {url: '/api/v1/self', method: 'get'},
+                    login: {url: '/v1/auth/login', method: 'post'},
+                    refresh: {url: '/v1/auth/refresh', method: 'post'},
+                    user: {url: '/v1/self', method: 'get'},
                     logout: false
                 }
             }
