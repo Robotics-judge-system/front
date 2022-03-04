@@ -32,6 +32,9 @@
             </template>
 
             <v-card>
+<!--
+TODO: Может лист и не нужен, но на будущее
+-->
                 <v-list>
                     <v-list-item>
                         <v-list-item-avatar>

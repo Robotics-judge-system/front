@@ -1,5 +1,6 @@
 <template>
     <v-container fluid class="fill-height fill-width pa-0 ma-0">
+        <create-competition-dialog :show.sync="createCompDialog"></create-competition-dialog>
         <v-row justify="center" no-gutters>
             <v-col cols="11" sm="11" md="6" lg="5" xl="4">
                 <v-row justify="center">
@@ -11,7 +12,7 @@
                             <perfect-scrollbar style="height: calc(100vh - 64px)" class="pr-2">
                                 <v-card class="ma-2" color="light-green accent-2">
                                     <v-card-title class="ma-2">
-                                        <v-row align="center">
+                                        <v-row align="center" @click="createCompDialog = true">
                                             Создать соревнование
                                             <v-spacer></v-spacer>
                                             <v-btn icon><v-icon>mdi-plus</v-icon></v-btn>
@@ -48,6 +49,7 @@ export default {
     name: "index.vue",
     data: () => ({
         competitions: [],
+        createCompDialog: false,
     }),
     mounted () {
         this.getCompetitions()
