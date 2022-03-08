@@ -7601,6 +7601,11 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
+perfect-scrollbar@^1.5.5:
+  version "1.5.5"
+  resolved "https://registry.yarnpkg.com/perfect-scrollbar/-/perfect-scrollbar-1.5.5.tgz#41a211a2fb52a7191eff301432134ea47052b27f"
+  integrity sha512-dzalfutyP3e/FOpdlhVryN4AJ5XDVauVWxybSkLZmakFE2sS3y3pc4JnSprw8tGmHvkaG5Edr5T7LBTZ+WWU2g==
+
 picocolors@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/picocolors/-/picocolors-1.0.0.tgz#cb5bdc74ff3f51892236eaf79d68bc44564ab81c"
@@ -10328,6 +10333,15 @@ vue-wavify@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/vue-wavify/-/vue-wavify-1.2.0.tgz#155b46e54fec4f0d3136fd543bedf3dfbcb7f804"
   integrity sha512-hM4T+5Baf1NnBUSVdyI6C9HV0eoPJ/pxxI0yhmihaQlQu3eXO+qnZWPu3a0PUnISHGurjIC2eI6GOUnD2dvqzg==
+
+vue2-perfect-scrollbar@^1.5.5:
+  version "1.5.5"
+  resolved "https://registry.yarnpkg.com/vue2-perfect-scrollbar/-/vue2-perfect-scrollbar-1.5.5.tgz#1946cdd8f3b757517ea176c30dc77ba19031508e"
+  integrity sha512-po1QGUlgGFL1aS8xC7IcGEUeySKFjk+qT7aVU9htOfGeVcmwOqZuFV3vIQaizDDBNwsbSE8kOO/p4DjAej0zNQ==
+  dependencies:
+    cssnano "^4.1.3"
+    perfect-scrollbar "^1.5.5"
+    postcss-import "^12.0.0"
 
 vue@^2.5.17, vue@^2.6.12:
   version "2.6.14"

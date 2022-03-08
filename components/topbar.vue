@@ -2,13 +2,18 @@
     <v-toolbar height="50px"
                color="transparent"
                elevation="0"
-               style="position: fixed;
+               style="z-index: 2; padding-top: 5px; padding-right: 5px"
+    >
+<!--
+position: fixed;
                       top: 1vh;
                       bottom: 0;
                       right: 1vw;
                       left: 0;
-                      z-index: 2"
-    >
+-->
+	    <div class="white--text">
+		    breadcrumbs will be here in some time :)
+	    </div>
         <v-spacer></v-spacer>
         <v-menu
             v-model="menu"
@@ -34,6 +39,8 @@
             <v-card>
 <!--
 TODO: Может лист и не нужен, но на будущее
+
+
 -->
                 <v-list>
                     <v-list-item>

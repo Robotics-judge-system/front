@@ -6,7 +6,7 @@
         :fullscreen="$vuetify.breakpoint.xsOnly">
         <v-card>
             <v-card-title>
-                Создать соревнование
+                Создать категорию
                 <v-spacer></v-spacer>
                 <v-btn icon @click="close"></v-btn>
             </v-card-title>
@@ -56,8 +56,9 @@
 import Util from "@/mixin/Util"
 
 export default {
-    name: "CreateCompetitionDialog",
-    props:["show"],
+	//TODO: это все большой CTRL C из диалогового от соревнований, если параметров больше не будет, то надо смерджить
+    name: "CreateCategoryDialog",
+    props:["show", "id"],
 	mixins:[Util],
     data: ()=>({
         name: '',
@@ -74,13 +75,13 @@ export default {
             this.$refs.dataFields.validate().then((res)=>{
                 if(res){
                     this.loading = true
-                    this.$axios.$post("/v1/competition/create", {
+                    this.$axios.$post(`/v1/competition/${this.id}/category`, {
                         name: this.name,
                         date_from: this.$moment(this.getDateOrder(-1, this.dates[0], this.dates[1])),
                         date_to: this.$moment(this.getDateOrder(0, this.dates[0], this.dates[1]))
                     }).then((res)=>{
                         this.loading = false
-                        this.$toast.success(`Соревнование ${this.name} создано`)
+                        this.$toast.success(`Категория ${this.name} создана`)
                         this.close()
                     }).catch(err=>{
                         this.loading = false
@@ -91,6 +92,7 @@ export default {
 
         },
         allowedDates(date){
+			//TODO: ограничитель по датам соревнований
             return this.$moment(date).isAfter(this.$moment().subtract(1, "days"))
         },
 	    getDateOrder(which, date1, date2){ //which - >=0 return bigger| <0 smaller
