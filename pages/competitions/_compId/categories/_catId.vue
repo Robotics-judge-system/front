@@ -14,7 +14,7 @@ TODO: всю эту мутню загнать в цикл
 						</v-card-title>
 						<v-card-text class="pa-0 ma-0">
 							<perfect-scrollbar style="height: calc(50vh - 64px - 25px);" class="px-2">
-								<DummyAdd name="Судей"></DummyAdd>
+								<DummyAdd name="(TBD) Судей" v-if="judges.length===0"></DummyAdd>
 							</perfect-scrollbar>
 						</v-card-text>
 					</v-card>
@@ -28,7 +28,7 @@ TODO: всю эту мутню загнать в цикл
 						</v-card-title>
 						<v-card-text class="pa-0 ma-0">
 							<perfect-scrollbar style="height: calc(50vh - 64px - 25px);" class="px-2">
-								<DummyAdd name="Команд"></DummyAdd>
+								<DummyAdd name="Команд" v-if="teams.length===0"></DummyAdd>
 							</perfect-scrollbar>
 						</v-card-text>
 					</v-card>
@@ -44,7 +44,7 @@ TODO: всю эту мутню загнать в цикл
 						</v-card-title>
 						<v-card-text class="pa-0 ma-0">
 							<perfect-scrollbar style="height: calc(50vh - 64px - 25px);" class="px-2">
-								<DummyAdd name="Форм"></DummyAdd>
+								<DummyAdd name="(TBD) Форм" v-if="forms.length===0"></DummyAdd>
 							</perfect-scrollbar>
 						</v-card-text>
 					</v-card>
@@ -58,7 +58,7 @@ TODO: всю эту мутню загнать в цикл
 						</v-card-title>
 						<v-card-text class="pa-0 ma-0">
 							<perfect-scrollbar style="height: calc(50vh - 64px - 25px);" class="px-2">
-								<DummyAdd name="Формул"></DummyAdd>
+								<DummyAdd name="Формул" v-if="formulas.length===0"></DummyAdd>
 							</perfect-scrollbar>
 						</v-card-text>
 					</v-card>
@@ -73,7 +73,7 @@ TODO: всю эту мутню загнать в цикл
 					</v-card-title>
 					<v-card-text class="pa-0 ma-0">
 						<perfect-scrollbar style="height: calc(100vh - 64px - 50px);" class="px-2">
-							<DummyAdd name="Заездов"></DummyAdd>
+							<DummyAdd name="Заездов" v-if="attempts.length===0"></DummyAdd>
 						</perfect-scrollbar>
 					</v-card-text>
 				</v-card>
@@ -84,15 +84,86 @@ TODO: всю эту мутню загнать в цикл
 
 <script>
 import DummyAdd from "@/components/DummyAdd";
-
+import Util from "@/mixin/Util"
+import { mapActions } from "vuex";
 export default {
 	layout: "default",
 	components: {DummyAdd},
+	mixins: [Util],
 	data: ()=>({
-
+		judges:[],
+		teams: [],
+		forms: [],
+		formulas: [],
+		attempts: [],
+		compId: 0,
+		catId: 0,
 	}),
 	mounted(){
-		console.log(this.$route.params.id)
+		console.log("before: ", this.$store.state.current_entity)
+		/*if(this.$store.state.current_entity.competition === undefined)
+			//TODO: перекрутить это на бредкрамбы
+			this.getEntity({ids: [this.$route.params.compId, this.$route.params.catId]}).then(res=>{
+				console.log("after: ", this.$store.state.current_entity)
+			})*/
+		this.compId = this.$route.params.compId
+		this.catId = this.$route.params.catId
+		this.getAttempts(this.compId, this.catId)
+		this.getTeams(this.compId, this.catId)
+		this.getFormulas(this.compId, this.catId)
+	},
+	methods:{
+		...mapActions({
+			getEntity: "getEntity"
+		}),
+
+		getTeams(compId, catId){
+			this.$axios.$get(`/v1/competition/${compId}/category/${catId}/team`).then(res=>{
+				console.log('teams: ', res)
+				this.teams = res
+			}).catch(err=>{
+				this.$toast.error(this.getHumanMessage(err))
+			})
+		},
+		getFormulas(compId, catId){
+			this.$axios.$get(`/v1/competition/${compId}/category/${catId}/formula-protocol`).then(res=>{
+				console.log('formulas: ', res)
+				this.formulas = res
+			}).catch(err=>{
+				this.$toast.error(this.getHumanMessage(err))
+			})
+		},
+		addFormula(compId, catId){
+			this.$axios.$get(`/v1/competition/${compId}/category/${catId}/formula-protocol`).then(res=>{
+				this.getFormulas(compId, catId)
+			}).catch(err=>{
+				this.$toast.error(this.getHumanMessage(err))
+			})
+		},
+		getAttempts(compId, catId){
+			this.$axios.$get(`/v1/competition/${compId}/category/${catId}/attempt`).then(res=>{
+				console.log('attempts: ', res)
+				this.attempts = res
+			}).catch(err=>{
+				this.$toast.error(this.getHumanMessage(err))
+			})
+		},
+
+
+		/*getJudges(compId, catId){
+			this.$axios.$get(`/v1/competition/${compId}/category/${catId}/judges`).then(res=>{
+				this.judges = res
+			}).catch(err=>{
+				this.$toast.error(this.getHumanMessage(err))
+			})
+		},*/
+		/*getForms(compId, catId){
+			this.$axios.$get(`/v1/competition/${compId}/category/${catId}/judges`).then(res=>{
+				this.judges = res
+			}).catch(err=>{
+				this.$toast.error(this.getHumanMessage(err))
+			})
+		},*/
 	}
 }
 </script>

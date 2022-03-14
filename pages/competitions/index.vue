@@ -16,7 +16,7 @@
                                         </v-row>
                                     </v-card-title>
                                 </v-card>
-                                <v-card @click="$router.push($route.fullPath + '/' + comp.id + '/categories')" v-for="comp in competitions" :key="comp.id" rounded class="ma-2">
+                                <v-card @click="pushToCategories(comp)" v-for="comp in competitions" :key="comp.id" rounded class="ma-2">
                                     <v-card-title>
                                         <v-icon class="mr-2">mdi-file-jpg-box</v-icon>
                                         {{comp.name}}
@@ -56,6 +56,7 @@ export default {
 			console.log(comp.name)
 		},
 	    getCompetitions() {
+			//TODO: add loading
 		    this.$axios.$get("/v1/competition")
 			    .then(res => {
 				    this.competitions = res
@@ -67,11 +68,18 @@ export default {
 	    moment(date) {
 		    return this.$moment(date);
 	    },
+	    pushToCategories(comp){
+			this.$store.commit("updateCurrentEntity", comp)
+		    this.$router.push(this.$route.fullPath + '/' + comp.id + '/categories')
+	    }
     },
 	watch:{
 		createCompDialog(nv){
-			if(!nv)
-				this.getCompetitions()
+			if(!nv){
+				this.competitions = []
+				this.getCompetitions() //TODO: лучше не релоадить конечно
+			}
+
 		}
 	}
 }

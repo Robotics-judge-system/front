@@ -16,7 +16,7 @@
 										</v-row>
 									</v-card-title>
 								</v-card>
-								<v-card @click="$router.push($route.fullPath + '/' + cat.id)" v-for="cat in categories" :key="cat.id" rounded class="ma-2">
+								<v-card @click="pushToCategory(cat)" v-for="cat in categories" :key="cat.id" rounded class="ma-2">
 									<v-card-title>
 										<v-icon class="mr-2">mdi-file-jpg-box</v-icon>
 										{{cat.name}}
@@ -43,6 +43,7 @@
 <script>
 import CreateCategoryDialog from "@/components/CreateCategoryDialog";
 
+
 export default {
 	layout: "default",
 	components:{CreateCategoryDialog},
@@ -52,17 +53,17 @@ export default {
 		createCatDialog: false,
 	}),
 	mounted () {
-		this.compId = this.$route.params.id
+		this.compId = this.$route.params.compId
 		this.getCategories(this.compId)
 	},
 	methods: {
+
 		viewInfo(comp){
 			console.log(comp.name)
 		},
 		getCategories(id) {
 			this.$axios.$get(`/v1/competition/${id}/category`)
 				.then(res => {
-					console.log(res)
 					this.categories = res
 				})
 				.catch(err => {
@@ -72,6 +73,10 @@ export default {
 		moment(date) {
 			return this.$moment(date);
 		},
+		pushToCategory(cat){
+			this.$store.commit("updateCurrentEntity", cat)
+			this.$router.push(this.$route.fullPath + '/' + cat.id)
+		}
 	},
 	watch:{
 		createCatDialog(nv){
