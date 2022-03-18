@@ -13,7 +13,7 @@ export default {
         getHumanMessage(response){
             let ret
             try{
-                ret = response.response.data.human_message
+                ret = response.response.data.exeption_message
             }
             catch(err){
                 console.error(err)
