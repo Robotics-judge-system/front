@@ -1,6 +1,28 @@
 <template>
 	<v-container fluid class="fill-height fill-width ma-0 pa-0 px-6">
 
+        <v-dialog v-model="resultsDialog" width="700px">
+            <v-card>
+                <v-card-title>
+                    Результаты
+                    <v-spacer></v-spacer>
+                    <v-btn @click="resultsDialog = false" icon>
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                </v-card-title>
+                <v-card-text>
+                    <v-data-table
+                        :headers="resultHeaders"
+                        :items="attempts"
+                        sort-by="attempt_score"
+                        sort-desc="false"
+                        hide-default-footer
+                        items-per-page="50"
+                    >
+                    </v-data-table>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
         <v-dialog v-model="createRoundDialog.show" width="500px">
             <v-card>
                 <v-card-title>
@@ -253,6 +275,7 @@ TODO: всю эту мутню загнать в цикл
                         <v-card-title class="white--text pr-2">
                             Завершенные попытки по раунду
                             <v-spacer></v-spacer>
+                            <v-btn @click="resultsDialog = true" icon color="green darken-2" class="mr-2"><v-icon>mdi-table-check</v-icon></v-btn>
                             <v-btn @click="createAttemptDialog.show = true" icon outlined small color="#FBAE3C"><v-icon>mdi-plus</v-icon></v-btn>
                         </v-card-title>
                         <v-card-text class="pa-0 ma-0">
@@ -315,6 +338,7 @@ export default {
             formula: 0,
             roundId: 0,
         },
+        resultsDialog: false,
 		judges:[],
 		teams: [],
 		forms: [],
@@ -323,6 +347,12 @@ export default {
         attempts: [],
 		compId: 0,
 		catId: 0,
+        resultHeaders:[
+            {text: 'Команда', value: 'team_id'},
+            {text: 'Раунд', value: 'attempt_id'},
+            {text: 'Время', value: 'attempt_time'},
+            {text: 'Итоговый результат заезда', value: 'attempt_score'},
+        ]
 	}),
 	mounted(){
 		console.log("before: ", this.$store.state.current_entity)
