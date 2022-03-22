@@ -1,4 +1,8 @@
 .app-background{
     background-color: #17011F;
 }
+html::-webkit-scrollbar {
+    width: 0; /* remove scrollbar space /
+background: transparent; / optional: just make scrollbar invisible */
+}
 

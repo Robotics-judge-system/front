@@ -3,7 +3,7 @@
 		<v-card-title>
 			{{name}} пока нет
 		</v-card-title>
-		<v-card-text>Вы можете добавить нажав по этой плитке, или по кнопке в строке заголовка</v-card-text>
+		<v-card-text>Вы можете добавить нажав по кнопке в строке заголовка</v-card-text>
 	</v-card>
 </template>
 

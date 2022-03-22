@@ -53,7 +53,6 @@ export default {
     // baseURL: "http://192.168.0.101:8080/api/",
     axios: {
         baseURL: "http://80.89.192.250:8080/api/",
-
         credentials: true
     },
     auth: {
