@@ -1,6 +1,5 @@
 <template>
 	<v-container fluid class="fill-height fill-width ma-0 pa-0 px-6">
-
         <v-dialog v-model="resultsDialog" width="700px">
             <v-card>
                 <v-card-title>
@@ -271,11 +270,11 @@ TODO: всю эту мутню загнать в цикл
 			</v-col>
             <v-col cols="4">
                 <v-row justify="center" align="center" class="">
-                    <v-card width="100%" height="calc(100vh - 50px)" color="transparent" elevation="0">
+                    <v-card width="100%" color="transparent" elevation="0">
                         <v-card-title class="white--text pr-2">
                             Завершенные попытки по раунду
                             <v-spacer></v-spacer>
-                            <v-btn @click="resultsDialog = true" icon color="green darken-2" class="mr-2"><v-icon>mdi-table-check</v-icon></v-btn>
+<!--                            <v-btn @click="resultsDialog = true" icon color="green darken-2" class="mr-2"><v-icon>mdi-table-check</v-icon></v-btn>-->
                             <v-btn @click="createAttemptDialog.show = true" icon outlined small color="#FBAE3C"><v-icon>mdi-plus</v-icon></v-btn>
                         </v-card-title>
                         <v-card-text class="pa-0 ma-0">
@@ -343,6 +342,7 @@ export default {
 		teams: [],
 		forms: [],
 		formulas: [],
+        formulaDialog: false,
         rounds: [],
         attempts: [],
 		compId: 0,
@@ -427,11 +427,12 @@ export default {
 			})
 		},
 		addFormula(compId, catId){
-			this.$axios.$post(`/v1/competition/${compId}/category/${catId}/formula-protocol`, {name: `test${this.formulas.length}`}).then(res=>{
+		    this.$router.push("/formulaEditor")
+			/*this.$axios.$post(`/v1/competition/${compId}/category/${catId}/formula-protocol`, {name: `test${this.formulas.length}`}).then(res=>{
 				this.getFormulas(compId, catId)
 			}).catch(err=>{
 				this.$toast.error(this.getHumanMessage(err))
-			})
+			})*/
 		},
         deleteFormula(compId, catId, protId){
             this.$axios.$delete(`/v1/competition/${compId}/category/${catId}/formula-protocol/${protId}`).then(res=>{

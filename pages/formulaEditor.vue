@@ -1,17 +1,6 @@
 <template>
-    <div class="modules-example" style="background-color: white">
-        <!--        <div al-app id="modules">
-                    <div
-                        class="module-list"
-                        al-repeat="(key, val) in modules"
-                        key="key"
-                        al-on.click="openModule(key)"
-                    >
-                        {{ "\{\{ key \}\}" }}
-                    </div>
-                    <button al-on.click="addModule()">Add</button>
-                    <v-btn @click="log(editor.toJSON())"></v-btn>
-                </div>-->
+    <div class="modules-example">
+        <v-btn @click="log(editor.toJSON().nodes)">Получить ноды</v-btn>
         <div id="rete" class="node-editor"></div>
     </div>
 </template>
@@ -23,9 +12,20 @@ import AlightRenderPlugin from "rete-alight-render-plugin";
 import ContextMenuPlugin from "rete-context-menu-plugin";
 import ModulePlugin from "rete-module-plugin";
 import AreaPlugin from "rete-area-plugin";
+import Vue from "vue";
+//import VueRenderPlugin from 'rete-vue-render-plugin';
+
+
 
 let numSocket = new Rete.Socket("Number");
 let floatSocket = new Rete.Socket("Float");
+let selectItems = [
+    {name: "Бочки", value: 1, id: 0},
+    {name: "Кубы", value: 2, id: 1},
+    {name: "Хуи", value: 3, id: 2},
+    {name: "Говны", value: 4, id: 3},
+]
+let selectID = 0
 
 class TextControl extends Rete.Control {
     constructor(emitter, key, readonly, type = "text") {
@@ -69,6 +69,91 @@ class TextControl extends Rete.Control {
     }
 }
 
+/*
+const VueSelectControl = {
+    props: ['emitter', 'ikey', 'getData', 'putData', 'selectItems'],
+    template: '<select :items="selectItems" :value="value" @input="change($event)"></select>',
+    data() {
+        return {
+            value: '',
+        }
+    },
+    mixins: [VueRenderPlugin.mixin],
+    methods: {
+        change(e){
+            this.value = +e.target.value;
+            this.update();
+        },
+        update() {
+            if (this.ikey)
+                this.putData(this.ikey, this.value)
+            this.emitter.trigger('process');
+        }
+    },
+    mounted() {
+        this.value = this.getData(this.ikey);
+    }
+}
+*/
+
+class SelectControl extends Rete.Control {
+    innerid = 0;
+    select = null
+    constructor(emitter, key, id) {
+        super(key);
+        this.emitter = emitter;
+        this.key = key;
+        this.innerid = id
+        this.type = 'number'
+        this.template = `<select id="${id}" @input="change($event)">${this.returnOption()}</select>`;
+
+        this.scope = {
+            value: null,
+            change: this.change.bind(this)
+        };
+    }
+    onChange() {
+    }
+
+    change(e) {
+        console.log(this.select.value)
+        this.scope.value = +this.select.value
+        /*this.scope.value =
+            this.type === "number" ? +e.target.value : e.target.value;*/
+        this.update();
+        this.onChange();
+    }
+
+    update() {
+        if (this.key) this.putData(this.key, this.scope.value);
+        this.emitter.trigger("process");
+        this._alight.scan();
+    }
+
+    mounted() {
+        Vue.nextTick(()=>{
+            this.select = document.getElementById(this.innerid.toString())
+        })
+        this.scope.value = 0
+        this.update();
+    }
+    setValue(val) {
+        this.scope.value = val;
+        this._alight.scan();
+    }
+
+    returnOption(){
+        let start = '<option value="'
+        let mid = '">'
+        let finish = '</option>'
+        let result = ''
+        selectItems.forEach(item=>{result+=(start+item.value+mid+item.name+finish)})
+        return result
+    }
+}
+
+
+
 class InputComponent extends Rete.Component {
     constructor() {
         super("Input");
@@ -79,9 +164,14 @@ class InputComponent extends Rete.Component {
     }
 
     builder(node) {
-        let out1 = new Rete.Output("output", "Number", numSocket);
-        let ctrl = new TextControl(this.editor, "name");
+        node.data.val = 0
+        let out1 = new Rete.Output("val", "Number", numSocket);
+        let ctrl = new SelectControl(this.editor, "val", 'select'+selectID);
+        selectID++
         return node.addControl(ctrl).addOutput(out1);
+    }
+    worker(node, inputs, outputs) {
+        outputs["val"] = node.data.val;
     }
 }
 
@@ -334,6 +424,7 @@ class DivideComponent extends Rete.Component{
 
 export default {
     name: "formulaEditor.vue",
+    layout: "editor",
     data() {
         return {
             modules: {
