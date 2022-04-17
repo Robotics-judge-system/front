@@ -20,10 +20,16 @@ import Vue from "vue";
 let numSocket = new Rete.Socket("Number");
 let floatSocket = new Rete.Socket("Float");
 let selectItems = [
-    {name: "Бочки", value: 1, id: 0},
-    {name: "Кубы", value: 2, id: 1},
-    {name: "Хуи", value: 3, id: 2},
-    {name: "Говны", value: 4, id: 3},
+    {name: "Бочки", id: 0},
+    {name: "Кубы", id: 1},
+    {name: "Хуи", id: 2},
+    {name: "Говны", id: 3},
+]
+let comparisonSelectItems = [
+	{name: "A < B", value: 0},
+	{name: "A <= B", value: 1},
+	{name: "A == B", value: 2},
+	{name: "A != B", value: 3}
 ]
 let selectID = 0
 
@@ -99,29 +105,29 @@ const VueSelectControl = {
 class SelectControl extends Rete.Control {
     innerid = 0;
     select = null
-    constructor(emitter, key, id) {
-        super(key);
-        this.emitter = emitter;
-        this.key = key;
+	array = []
+	mode = 'name'
+    constructor(emitter, key, id, array, mode = "name") {
+        super(key)
+        this.emitter = emitter
+        this.key = key
         this.innerid = id
-        this.type = 'number'
-        this.template = `<select id="${id}" @input="change($event)">${this.returnOption()}</select>`;
+        this.type = 'text'
+	    this.mode = mode
+	    this.array = array
+        this.template = `<select id="${id}" @input="change($event)">${this.returnOption()}</select>`
 
         this.scope = {
             value: null,
             change: this.change.bind(this)
         };
     }
-    onChange() {
-    }
 
     change(e) {
-        console.log(this.select.value)
-        this.scope.value = +this.select.value
+        this.scope.value = this.select.value
         /*this.scope.value =
             this.type === "number" ? +e.target.value : e.target.value;*/
         this.update();
-        this.onChange();
     }
 
     update() {
@@ -133,9 +139,10 @@ class SelectControl extends Rete.Control {
     mounted() {
         Vue.nextTick(()=>{
             this.select = document.getElementById(this.innerid.toString())
+	        this.scope.value = this.select.value
+	        this.update();
         })
-        this.scope.value = 0
-        this.update();
+
     }
     setValue(val) {
         this.scope.value = val;
@@ -147,12 +154,10 @@ class SelectControl extends Rete.Control {
         let mid = '">'
         let finish = '</option>'
         let result = ''
-        selectItems.forEach(item=>{result+=(start+item.value+mid+item.name+finish)})
+        this.array.forEach(item=>{result+=(start+((this.mode==='name')?item.name:item.value)+mid+item.name+finish)})
         return result
     }
 }
-
-
 
 class InputComponent extends Rete.Component {
     constructor() {
@@ -164,14 +169,16 @@ class InputComponent extends Rete.Component {
     }
 
     builder(node) {
+		node.data.name = ''
         node.data.val = 0
-        let out1 = new Rete.Output("val", "Number", numSocket);
-        let ctrl = new SelectControl(this.editor, "val", 'select'+selectID);
+        let out1 = new Rete.Output("val", "Number", numSocket)
+        let ctrl = new SelectControl(this.editor, "name", 'select'+selectID, selectItems, 'name')
+	    let ctrlNum = new TextControl(this.editor, "val", false, "number")
         selectID++
-        return node.addControl(ctrl).addOutput(out1);
+        return node.addControl(ctrl).addControl(ctrlNum).addOutput(out1)
     }
     worker(node, inputs, outputs) {
-        outputs["val"] = node.data.val;
+        outputs["val"] = node.data.val
     }
 }
 
@@ -209,11 +216,29 @@ class OutputComponent extends Rete.Component {
     }
 
     builder(node) {
-        let inp = new Rete.Input("input", "Number", numSocket);
-        let ctrl = new TextControl(this.editor, "name");
+		/*node.data.res = 0
+	    node.data.time = 0*/
+        let inpRes = new Rete.Input("res", "Result", numSocket);
+	    let inpTime = new Rete.Input("time", "Time", numSocket);
+        let ctrlRes = new TextControl(this.editor, "previewRes", true, "number");
+	    let ctrlTime = new TextControl(this.editor, "previewTime", true, "number");
 
-        return node.addControl(ctrl).addInput(inp);
+        return node.addControl(ctrlRes).addControl(ctrlTime).addInput(inpRes).addInput(inpTime);
     }
+	worker(node, inputs, outputs, {silent} = {}) {
+
+		if (!silent){
+			let gotNode = this.editor.nodes.find(n => n.id === node.id)
+			gotNode
+				.controls.get("previewRes")
+				.setValue(inputs["res"][0]);
+			gotNode
+				.controls.get("previewTime")
+				.setValue(inputs["time"][0]);
+
+		}
+
+	}
 }
 
 class OutputFloatComponent extends Rete.Component {
@@ -369,14 +394,6 @@ class MultiplyComponent extends Rete.Component{
 
         outputs["num"] = res;
     }
-
-    created(node) {
-        console.log("created", node);
-    }
-
-    destroyed(node) {
-        console.log("destroyed", node);
-    }
 }
 
 class DivideComponent extends Rete.Component{
@@ -420,6 +437,84 @@ class DivideComponent extends Rete.Component{
     destroyed(node) {
         console.log("destroyed", node);
     }
+}
+
+class IfComponent extends Rete.Component{
+	constructor() {
+		super("If");
+	}
+
+	builder(node){
+		node.data.cond = ""
+		let condVal1 = new Rete.Input("condVal1", "Condition Value A", numSocket)
+		let condVal2 = new Rete.Input("condVal2", "Condition Value B", numSocket)
+		let thenDo = new Rete.Input("then", "Then", numSocket)
+		let elseDo = new Rete.Input("else", "Else", numSocket)
+		let result = new Rete.Output("result", "Result", numSocket);
+		//let cond = new TextControl(this.editor, "cond", false, "text")
+		let cond = new SelectControl(this.editor, "cond", 'select'+selectID, comparisonSelectItems, 'value')
+		return node
+			.addInput(condVal1)
+			.addInput(condVal2)
+			.addInput(thenDo)
+			.addInput(elseDo)
+			.addOutput(result)
+			.addControl(cond)
+	}
+
+	worker(node, inputs, outputs, { silent } = {}){
+		let cond = node.data.cond
+		let condVal1 = inputs["condVal1"][0]
+		let condVal2 = inputs["condVal2"][0]
+		let thenNum = inputs["then"][0]
+		let elseNum = inputs["else"][0]
+		let res = 0
+		let boolRes = true
+
+		console.log(cond, boolRes, condVal1, condVal2, comparisonSelectItems[cond].name)
+		switch (parseInt(cond)){ //TODO: без парсинта не ловит, хотя в объекте число
+			case 0: boolRes&=(condVal1 < condVal2);   break
+			case 1: boolRes&=(condVal1 <= condVal2);  break
+			case 2: boolRes&=(condVal1 === condVal2); break
+			case 3: boolRes&=(condVal1 !== condVal2); break
+		}
+		if(boolRes)
+			res = thenNum
+		else
+			res = elseNum
+
+		outputs["result"] = res
+
+		/*if(cond[0] === "<"){
+			if(cond[1] === "=")
+				boolRes&=(condVal<=this.getNum(2, cond))
+			else
+				boolRes&=(condVal<this.getNum(1, cond))
+
+		}
+		else if(cond[0] === ">"){
+			if(cond[1] === "=")
+				boolRes&=(condVal>=this.getNum(2, cond))
+			else
+				boolRes&=(condVal>this.getNum(1, cond))
+		}
+		else if(cond[0] === "=" && cond[1] === "=")
+				boolRes&=(condVal===this.getNum(2, cond))
+
+
+*/
+	}
+
+	getNum(i, arr){
+		let res = 0
+		while(!isNaN(arr[i])){
+			res = (res*10)+ parseInt(arr[i])
+			i++
+		}
+		console.log(res)
+		return res
+
+	}
 }
 
 export default {
@@ -528,14 +623,15 @@ export default {
         //engine.use(ProfilerPlugin, { this.editor, enabled: true });
         [
             new NumComponent(),
-            new AddComponent(),
             new InputComponent(),
             new ModuleComponent(),
             new OutputComponent(),
             new OutputFloatComponent(),
+	        new AddComponent(),
             new MultiplyComponent(),
             new MinusComponent(),
             new DivideComponent(),
+	        new IfComponent(),
         ].map(c => {
             this.editor.register(c);
             engine.register(c);
