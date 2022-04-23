@@ -8,6 +8,9 @@
                 <v-btn large @click="$router.push('/formulaEditor')">
                     Формулы
                 </v-btn>
+                <v-btn large @click="$router.push('/protocolEditor')">
+                    Протокол
+                </v-btn>
 			</v-col>
 		</v-row>
 	</v-container>

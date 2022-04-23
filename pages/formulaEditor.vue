@@ -22,8 +22,8 @@ let floatSocket = new Rete.Socket("Float");
 let selectItems = [
     {name: "Бочки", id: 0},
     {name: "Кубы", id: 1},
-    {name: "Хуи", id: 2},
-    {name: "Говны", id: 3},
+    {name: "Деревья", id: 2},
+    {name: "Лампочки", id: 3},
 ]
 let comparisonSelectItems = [
 	{name: "A < B", value: 0},
@@ -74,33 +74,6 @@ class TextControl extends Rete.Control {
         this._alight.scan();
     }
 }
-
-/*
-const VueSelectControl = {
-    props: ['emitter', 'ikey', 'getData', 'putData', 'selectItems'],
-    template: '<select :items="selectItems" :value="value" @input="change($event)"></select>',
-    data() {
-        return {
-            value: '',
-        }
-    },
-    mixins: [VueRenderPlugin.mixin],
-    methods: {
-        change(e){
-            this.value = +e.target.value;
-            this.update();
-        },
-        update() {
-            if (this.ikey)
-                this.putData(this.ikey, this.value)
-            this.emitter.trigger('process');
-        }
-    },
-    mounted() {
-        this.value = this.getData(this.ikey);
-    }
-}
-*/
 
 class SelectControl extends Rete.Control {
     innerid = 0;
@@ -239,23 +212,6 @@ class OutputComponent extends Rete.Component {
 		}
 
 	}
-}
-
-class OutputFloatComponent extends Rete.Component {
-    constructor() {
-        super("Float Output");
-        this.module = {
-            nodeType: "output",
-            socket: floatSocket
-        };
-    }
-
-    builder(node) {
-        let inp = new Rete.Input("float", "Float", floatSocket);
-        let ctrl = new TextControl(this.editor, "name");
-
-        return node.addControl(ctrl).addInput(inp);
-    }
 }
 
 class NumComponent extends Rete.Component {
@@ -485,35 +441,6 @@ class IfComponent extends Rete.Component{
 
 		outputs["result"] = res
 
-		/*if(cond[0] === "<"){
-			if(cond[1] === "=")
-				boolRes&=(condVal<=this.getNum(2, cond))
-			else
-				boolRes&=(condVal<this.getNum(1, cond))
-
-		}
-		else if(cond[0] === ">"){
-			if(cond[1] === "=")
-				boolRes&=(condVal>=this.getNum(2, cond))
-			else
-				boolRes&=(condVal>this.getNum(1, cond))
-		}
-		else if(cond[0] === "=" && cond[1] === "=")
-				boolRes&=(condVal===this.getNum(2, cond))
-
-
-*/
-	}
-
-	getNum(i, arr){
-		let res = 0
-		while(!isNaN(arr[i])){
-			res = (res*10)+ parseInt(arr[i])
-			i++
-		}
-		console.log(res)
-		return res
-
 	}
 }
 
@@ -626,7 +553,6 @@ export default {
             new InputComponent(),
             new ModuleComponent(),
             new OutputComponent(),
-            new OutputFloatComponent(),
 	        new AddComponent(),
             new MultiplyComponent(),
             new MinusComponent(),

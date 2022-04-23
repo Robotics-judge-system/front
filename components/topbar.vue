@@ -4,15 +4,8 @@
                elevation="0"
                style="z-index: 2; padding-top: 5px; padding-right: 5px"
     >
-<!--
-position: fixed;
-                      top: 1vh;
-                      bottom: 0;
-                      right: 1vw;
-                      left: 0;
--->
 	    <div class="white--text">
-		    breadcrumbs will be here in some time :)
+            <v-breadcrumbs></v-breadcrumbs>
 	    </div>
         <v-spacer></v-spacer>
         <v-menu
@@ -39,8 +32,6 @@ position: fixed;
             <v-card>
 <!--
 TODO: Может лист и не нужен, но на будущее
-
-
 -->
                 <v-list>
                     <v-list-item>
@@ -62,11 +53,8 @@ TODO: Может лист и не нужен, но на будущее
                         </v-list-item-action>
                     </v-list-item>
                 </v-list>
-
-
             </v-card>
         </v-menu>
-
     </v-toolbar>
 </template>
 
