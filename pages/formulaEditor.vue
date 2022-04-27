@@ -25,11 +25,11 @@ let selectItems = [
     {name: "Деревья", id: 2},
     {name: "Лампочки", id: 3},
 ]
-let comparisonSelectItems = [
-	{name: "A < B", value: 0},
-	{name: "A <= B", value: 1},
-	{name: "A == B", value: 2},
-	{name: "A != B", value: 3}
+let comparisonSelectItems = [ //TODO: rework value on idx
+	{name: "A < B", value: 0, short: '<'},
+	{name: "A <= B", value: 1, short: '<='},
+	{name: "A == B", value: 2, short: '=='},
+	{name: "A != B", value: 3, short: '!='}
 ]
 let selectID = 0
 
@@ -360,7 +360,9 @@ class DivideComponent extends Rete.Component{
     builder(node) {
         let inp1 = new Rete.Input("num1", "Number", numSocket);
         let inp2 = new Rete.Input("num2", "Number", numSocket);
-        let out = new Rete.Output("num", "Number", numSocket);
+        let out1 = new Rete.Output("out1", "Rounded", numSocket);
+        let out2 = new Rete.Output("out2", "Base", numSocket);
+        let out3 = new Rete.Output("out3", "Remainder", numSocket);
 
         inp1.addControl(new TextControl(this.editor, "num1", false, "number"));
         inp2.addControl(new TextControl(this.editor, "num2", false, "number"));
@@ -369,21 +371,28 @@ class DivideComponent extends Rete.Component{
             .addInput(inp1)
             .addInput(inp2)
             .addControl(new TextControl(this.editor, "preview", true))
-            .addOutput(out);
+            .addOutput(out1)
+            .addOutput(out2)
+            .addOutput(out3)
     }
 
     worker(node, inputs, outputs, { silent } = {}) {
         let n1 = inputs["num1"].length ? inputs["num1"][0] : node.data.num1;
         let n2 = inputs["num2"].length ? inputs["num2"][0] : node.data.num2;
-        let res = n1 / n2;
+        let resRounded = Math.round(n1 / n2);
+        let resRemainder = n1 % n2;
+        let resInt = Math.floor(n1 / n2);
 
         if (!silent)
             this.editor.nodes
                 .find(n => n.id === node.id)
                 .controls.get("preview")
-                .setValue(res);
+                .setValue(resRounded.toString() + ' ' + resInt.toString() + ' ' + resRemainder.toString());
 
-        outputs["num"] = res;
+
+        outputs["num1"] = resRounded;
+        outputs["num2"] = resInt;
+        outputs["num3"] = resRemainder;
     }
 
     created(node) {
@@ -401,7 +410,8 @@ class IfComponent extends Rete.Component{
 	}
 
 	builder(node){
-		node.data.cond = ""
+		node.data.cond = "0"
+        node.data.textCond = '<'
 		let condVal1 = new Rete.Input("condVal1", "Condition Value A", numSocket)
 		let condVal2 = new Rete.Input("condVal2", "Condition Value B", numSocket)
 		let thenDo = new Rete.Input("then", "Then", numSocket)
@@ -420,6 +430,7 @@ class IfComponent extends Rete.Component{
 
 	worker(node, inputs, outputs, { silent } = {}){
 		let cond = node.data.cond
+        node.data.textCond = comparisonSelectItems[node.data.cond].short
 		let condVal1 = inputs["condVal1"][0]
 		let condVal2 = inputs["condVal2"][0]
 		let thenNum = inputs["then"][0]
@@ -427,7 +438,7 @@ class IfComponent extends Rete.Component{
 		let res = 0
 		let boolRes = true
 
-		console.log(cond, boolRes, condVal1, condVal2, comparisonSelectItems[cond].name)
+		console.log(cond, boolRes, condVal1, condVal2, comparisonSelectItems[cond].name, node.data.textCond)
 		switch (parseInt(cond)){ //TODO: без парсинта не ловит, хотя в объекте число
 			case 0: boolRes&=(condVal1 < condVal2);   break
 			case 1: boolRes&=(condVal1 <= condVal2);  break
@@ -454,55 +465,6 @@ export default {
                     data: {
                         id: "demo@0.1.0",
                         nodes: {
-                            "5": {
-                                id: 5,
-                                data: {
-                                    num1: 0,
-                                    num2: 0
-                                },
-                                inputs: {
-                                    num1: {
-                                        connections: [
-                                            {
-                                                node: 12,
-                                                output: "...",
-                                                data: {}
-                                            }
-                                        ]
-                                    },
-                                    num2: {
-                                        connections: [
-                                        ]
-                                    }
-                                },
-                                outputs: {
-                                    num: {
-                                        connections: []
-                                    }
-                                },
-                                position: [1217, 123],
-                                name: "Add"
-                            },
-                            "12": {
-                                id: 12,
-                                data: {
-                                    num: 1
-                                },
-                                inputs: {},
-                                outputs: {
-                                    num: {
-                                        connections: [
-                                            {
-                                                node: 5,
-                                                input: "...",
-                                                data: {}
-                                            },
-                                        ]
-                                    }
-                                },
-                                position: [410, 212],
-                                name: "Number"
-                            }
                         }
                     }
                 },
