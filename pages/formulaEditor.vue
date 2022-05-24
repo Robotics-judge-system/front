@@ -1,5 +1,7 @@
 <template>
     <div class="modules-example">
+	    <v-btn text color="green darken-2">Сохранить</v-btn>
+	    <v-btn text color="grey lighten-1">Вернуться</v-btn>
         <v-btn @click="log(editor.toJSON().nodes)">Получить ноды</v-btn>
         <div id="rete" class="node-editor"></div>
     </div>

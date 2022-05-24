@@ -25,7 +25,7 @@
                                         label="Название">
                                     </v-text-field>
                                 </ValidationProvider>
-                                <ValidationProvider name="Даты" vid="dates" rules="required" v-slot="{ errors, valid }">
+<!--                                <ValidationProvider name="Даты" vid="dates" rules="required" v-slot="{ errors, valid }">
                                     <v-date-picker
                                         width="100%"
                                         v-model="dates"
@@ -37,7 +37,7 @@
                                         range>
                                     </v-date-picker>
                                     <span style="color: red">{{ errors[0] }}</span>
-                                </ValidationProvider>
+                                </ValidationProvider>-->
                             </ValidationObserver>
                         </v-list-item-content>
                     </v-list-item>
@@ -77,8 +77,8 @@ export default {
                     this.loading = true
                     this.$axios.$post(`/v1/competition/${this.id}/category`, {
                         name: this.name,
-                        date_from: this.$moment(this.getDateOrder(-1, this.dates[0], this.dates[1])),
-                        date_to: this.$moment(this.getDateOrder(0, this.dates[0], this.dates[1]))
+                        /*date_from: this.$moment(this.getDateOrder(-1, this.dates[0], this.dates[1])),
+                        date_to: this.$moment(this.getDateOrder(0, this.dates[0], this.dates[1]))*/
                     }).then((res)=>{
                         this.loading = false
                         this.$toast.success(`Категория ${this.name} создана`)
@@ -91,7 +91,7 @@ export default {
             }).catch((err)=>{console.error(err)})
 
         },
-        allowedDates(date){
+      /*  allowedDates(date){
 			//TODO: ограничитель по датам соревнований
             return this.$moment(date).isAfter(this.$moment().subtract(1, "days"))
         },
@@ -101,7 +101,7 @@ export default {
 			else
 				return which>=0?date2:date1
 
-	    }
+	    }*/
     },
     watch:{
 
