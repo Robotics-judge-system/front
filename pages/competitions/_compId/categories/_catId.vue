@@ -1,5 +1,6 @@
 <template>
 	<v-container fluid class="fill-height fill-width ma-0 pa-0 px-6">
+        <ProtocolEditor :show.sync="protocolEditorDialog.show"></ProtocolEditor>
         <v-dialog v-model="resultsDialog" width="700px">
             <v-card>
                 <v-card-title>
@@ -131,14 +132,14 @@
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
                 </v-card-title>
-                <v-card-text>
+                <v-card-text class="my-0 py-0">
                     <v-list>
                         <v-list-item>
                             <v-list-item-icon><v-icon>mdi-card-text</v-icon></v-list-item-icon>
                             <v-list-item-content>
                                 <v-text-field
                                     v-model="temp.teamName"
-                                    hint="Имя команды"
+                                    label="Название команды"
                                     outlined
                                     dense
                                 >
@@ -146,26 +147,32 @@
                             </v-list-item-content>
                         </v-list-item>
                         <v-divider></v-divider>
-                        <v-list-item>
-                            <v-list-item-icon><v-icon>mdi-human</v-icon></v-list-item-icon>
-                            <v-list-item-content>
-                                <v-text-field
-                                    v-model="temp.participants[0].name"
-                                    hint="Имя человека"
-                                    outlined
-                                    dense
-                                >
-                                </v-text-field>
-                                <v-select
-                                    v-model="temp.participants[0].team_role"
-                                    :items="prtItems"
-                                    item-text="name"
-                                    item-value="value"
-                                    dense
-                                    outlined
-                                >
-                                </v-select>
-                            </v-list-item-content>
+                        <perfect-scrollbar style="height: 60vh">
+                            <v-list-item v-for="(prt, idx) in temp.participants" :key="idx">
+                                <v-list-item-icon><v-icon>mdi-human</v-icon></v-list-item-icon>
+                                <v-list-item-content>
+                                    <v-text-field
+                                        v-model="temp.participants[idx].name"
+                                        label="Имя человека"
+                                        outlined
+                                        dense
+                                    >
+                                    </v-text-field>
+                                    <v-select
+                                        v-model="temp.participants[idx].team_role"
+                                        :items="prtItems"
+                                        item-text="name"
+                                        item-value="value"
+                                        dense
+                                        outlined
+                                    >
+                                    </v-select>
+                                </v-list-item-content>
+                            </v-list-item>
+                        </perfect-scrollbar>
+                        <v-divider></v-divider>
+                        <v-list-item class="py-0 my-0">
+                            <v-btn block color="white" elevation="0" @click="addParticipant"><v-icon color="green darken-2">mdi-plus</v-icon></v-btn>
                         </v-list-item>
                     </v-list>
                 </v-card-text>
@@ -209,12 +216,14 @@ TODO: всю эту мутню загнать в цикл
 						<v-card-text class="pa-0 ma-0">
 							<perfect-scrollbar style="height: calc(50vh - 64px - 25px);" class="px-2">
 								<DummyAdd @click="createTeamDialog = true" name="Команд" v-if="teams.length===0"></DummyAdd>
-                                <v-card v-for="team in teams" :key="team.id" class="my-2">
+                                <v-card v-for="team in teams" :key="team.id" class="mb-2">
                                     <v-card-title>
                                         {{team.team_name}}
+                                        <v-spacer></v-spacer>
+                                        <v-btn color="blue darken-2" icon small><v-icon>mdi-pencil</v-icon></v-btn>
                                     </v-card-title>
                                     <v-card-text>
-                                        <div v-for="participant in team.participants">
+                                        <div v-for="participant in team.participants" style="font-size: 18px">
                                             {{participant.name}} - {{convertTextToEnum(participant.team_role)}}
                                         </div>
                                     </v-card-text>
@@ -234,7 +243,7 @@ TODO: всю эту мутню загнать в цикл
 					<v-card-text class="pa-0 ma-0">
 						<perfect-scrollbar style="height: calc(50vh - 64px - 25px);" class="px-2">
 							<DummyAdd name="Раундов" v-if="rounds.length===0"></DummyAdd>
-                            <v-card v-for="round in rounds" :key="round.id" class="my-2">
+                            <v-card v-for="round in rounds" :key="round.id" class="mb-2">
                                 <v-card-title>
                                     {{round.name}}
                                     <v-spacer></v-spacer>
@@ -255,7 +264,7 @@ TODO: всю эту мутню загнать в цикл
                     <v-card-text class="pa-0 ma-0">
                         <perfect-scrollbar style="height: calc(50vh - 64px - 25px);" class="px-2">
                             <DummyAdd name="Формул" v-if="formulas.length===0" @click="addFormula(compId, catId)"></DummyAdd>
-                            <v-card v-for="formula in formulas" :key="formula.id" class="my-2">
+                            <v-card v-for="formula in formulas" :key="formula.id" class="mb-2">
                                 <v-card-title>
                                     {{formula.name}}
                                     <v-spacer></v-spacer>
@@ -280,7 +289,7 @@ TODO: всю эту мутню загнать в цикл
                         <v-card-text class="pa-0 ma-0">
                             <perfect-scrollbar style="height: calc(100vh - 64px - 50px);" class="px-2">
                                 <DummyAdd name="Завершенных попыток" v-if="attempts.length===0"></DummyAdd>
-                                <v-card v-for="att in attempts" :key="att.id" class="my-2">
+                                <v-card v-for="att in attempts" :key="att.id" class="mb-2">
                                     <v-card-title>
                                         {{teams.find(t => t.id === att.team_id).team_name}} - {{rounds.find(t=>t.id === att.attempt_id).name}}
                                     </v-card-title>
@@ -305,9 +314,10 @@ TODO: всю эту мутню загнать в цикл
 import DummyAdd from "@/components/DummyAdd";
 import Util from "@/mixin/Util"
 import { mapActions } from "vuex";
+import ProtocolEditor from "@/components/protocolEditor";
 export default {
 	layout: "default",
-	components: {DummyAdd},
+	components: {ProtocolEditor, DummyAdd},
 	mixins: [Util],
 	data: ()=>({
         createTeamDialog: false,
@@ -336,6 +346,10 @@ export default {
             show: false,
             formula: 0,
             roundId: 0,
+        },
+        protocolEditorDialog:{
+            show: false,
+            protocol: {},
         },
         resultsDialog: false,
 		judges:[],
@@ -404,6 +418,9 @@ export default {
 		    this.registerTeam(this.compId, this.catId, this.temp.teamName, this.temp.participants)
             this.closeTeamCreationDialog()
         },
+        addParticipant(){
+		    this.temp.participants.push({name: '', team_role: ''})
+        },
         closeTeamCreationDialog(){
             this.temp = Object.assign({}, this.defaultTemp)
             this.createTeamDialog = false
@@ -427,7 +444,8 @@ export default {
 			})
 		},
 		addFormula(compId, catId){
-		    this.$router.push("/formulaEditor")
+		    this.protocolEditorDialog.show = true
+		    //this.$router.push("/formulaEditor")
 			/*this.$axios.$post(`/v1/competition/${compId}/category/${catId}/formula-protocol`, {name: `test${this.formulas.length}`}).then(res=>{
 				this.getFormulas(compId, catId)
 			}).catch(err=>{
