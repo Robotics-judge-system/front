@@ -386,35 +386,28 @@ export default {
             this.$refs.regFields.validate().then(res=>{
                 console.log(res)
                 if(res){
-                    let valid = {
-                        username: false,
-                        email: false
-                    }
-                    this.$axios.$post("/v1/registration/validation/username", {username: this.username})
-                        .then(res=>{valid.username = true})
-                        .catch(err=>{
-                            valid.username = false
-                            this.$refs.regFields.setErrors({
-                                username: ['This username is already taken']
-                            });
-                        })
-                    this.$axios.$post("/v1/registration/validation/email", {email: this.email})
-                        .then(res=>{valid.email = true})
-                        .catch(err=>{
-                            valid.email = false
-                            this.$refs.regFields.setErrors({
-                                email: ['This email is already taken']
-                            });
-                        })
-
-                    if(valid.email && valid.email){
-                        this.$axios.$post("/v1/register", {username: this.username, name: this.name, password: this.pass, email: this.email})
-                            .then(res=>{
-                                this.reqLoading = false
-                                console.log(res)
-                                this.signIn()
-                            })
-                    }
+	                this.$axios.$post("/v1/registration/validation/email", {email: this.email})
+		                .then(res=>{
+			                this.$axios.$post("/v1/registration/validation/username", {username: this.username})
+				                .then(res=>{
+					                this.$axios.$post("/v1/register", {username: this.username, name: this.name, password: this.pass, email: this.email})
+						                .then(res=>{
+							                this.reqLoading = false
+							                console.log(res)
+							                this.signIn()
+						                })
+				                })
+				                .catch(err=>{
+					                this.$refs.regFields.setErrors({
+						                username: ['This username is already taken']
+					                });
+				                })
+		                })
+		                .catch(err=>{
+			                this.$refs.regFields.setErrors({
+				                email: ['This email is already taken']
+			                });
+		                })
 
                     this.reqLoading = false
                 }

@@ -1,11 +1,11 @@
 <template>
-    <v-dialog v-model="show" width="700px">
+    <v-dialog v-model="show" width="700px" persistent>
         <v-card>
             <v-card-title>
-                Название:
+                Название протокола:
                 <v-text-field dense class="ma-0 pa-0 ml-2 mb-n5" v-model="protocolName"></v-text-field>
                 <v-spacer></v-spacer>
-                <v-btn icon><v-icon>mdi-close</v-icon></v-btn>
+                <v-btn icon @click="closeNoSave"><v-icon>mdi-close</v-icon></v-btn>
             </v-card-title>
             <v-card-text class="pa-0 ma-0">
                 <perfect-scrollbar style="height: calc(95vh - 68px - 50px - 52px)">
@@ -61,8 +61,8 @@
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn text color="grey lighten-1">Отмена</v-btn>
-                <v-btn text color="green darken-2" @click="save">Сохранить</v-btn>
+                <v-btn text color="grey lighten-1" @click="closeNoSave">Отмена</v-btn>
+                <v-btn text color="green darken-2" @click="save">Далее</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -73,7 +73,7 @@ import Vue from "vue";
 
 export default {
     name: "ProtocolEditor",
-    props:["show"],
+    props:["show", "@protocol-emit"],
     data:()=>({
         fields: [],
         entityButtons:[
@@ -129,8 +129,15 @@ export default {
             Vue.set(this.fields, idx2, buf)
         },
         save(){
-            this.$axios.$post('')
-        }
+	        this.$emit('protocol-emit', {fields: this.fields, name: this.protocolName})
+	        this.closeNoSave()
+        },
+	    closeNoSave(){
+			this.timePresence = false
+		    this.fields = []
+		    this.protocolName = ''
+		    this.$emit('update:show', false)
+	    }
     }
 }
 </script>

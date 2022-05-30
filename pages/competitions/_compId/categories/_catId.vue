@@ -1,6 +1,7 @@
 <template>
 	<v-container fluid class="fill-height fill-width ma-0 pa-0 px-6">
-        <ProtocolEditor :show.sync="protocolEditorDialog.show"></ProtocolEditor>
+        <ProtocolEditor :show.sync="protocolEditorDialog.show" @protocol-emit="passToFormulaEditor"></ProtocolEditor>
+		<FormulaEditor :show.sync="formulaEditorDialog.show" @formula-emit="saveFormulaProtocol"></FormulaEditor>
         <v-dialog v-model="resultsDialog" width="700px">
             <v-card>
                 <v-card-title>
@@ -314,7 +315,7 @@ TODO: всю эту мутню загнать в цикл
 import DummyAdd from "@/components/DummyAdd";
 import Util from "@/mixin/Util"
 import { mapActions } from "vuex";
-import ProtocolEditor from "@/components/protocolEditor";
+import ProtocolEditor from "@/components/ProtocolEditor";
 export default {
 	layout: "default",
 	components: {ProtocolEditor, DummyAdd},
@@ -351,6 +352,10 @@ export default {
             show: false,
             protocol: {},
         },
+		formulaEditorDialog:{
+			show: false,
+			formula: {},
+		},
         resultsDialog: false,
 		judges:[],
 		teams: [],
@@ -451,6 +456,15 @@ export default {
 			}).catch(err=>{
 				this.$toast.error(this.getHumanMessage(err))
 			})*/
+		},
+		passToFormulaEditor(protocol){
+			console.log("Result protocol: ", protocol)
+			this.protocolEditorDialog.protocol = protocol
+			this.formulaEditorDialog.show = true
+		},
+		saveFormulaProtocol(formula){
+			this.formulaEditorDialog.formula = formula
+			console.log("Result formula: ", formula)
 		},
         deleteFormula(compId, catId, protId){
             this.$axios.$delete(`/v1/competition/${compId}/category/${catId}/formula-protocol/${protId}`).then(res=>{
