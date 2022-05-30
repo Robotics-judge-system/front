@@ -23,12 +23,7 @@ import Vue from "vue";
 
 let numSocket = new Rete.Socket("Number");
 let floatSocket = new Rete.Socket("Float");
-let selectItems = [
-	{name: "Бочки"},
-	{name: "Кубы"},
-	{name: "Деревья"},
-	{name: "Лампочки"},
-]
+let selectItems = []
 let comparisonSelectItems = [ //TODO: rework value on idx
 	{name: "A < B", value: 0, short: '<'},
 	{name: "A <= B", value: 1, short: '<='},
@@ -131,7 +126,10 @@ class SelectControl extends Rete.Control {
 		let mid = '">'
 		let finish = '</option>'
 		let result = ''
-		this.array.forEach(item=>{result+=(start+((this.mode==='name')?item.name:item.value)+mid+item.name+finish)})
+		this.array.forEach(item=>{
+			result+=(start+((this.mode==='name')?item.name:item.value)+mid+item.name+finish)
+			console.log(item)
+		})
 		return result
 	}
 }
@@ -486,7 +484,7 @@ export default {
 			return { id: "demo@0.1.0", nodes: {} };
 		},
 		save(){
-			this.$emit("formula-emit", this.editor.toJSON().nodes)
+			this.$emit("formula-emit", this.editor.toJSON())
 			//console.log("sending: ", this.editor.toJSON())
 			this.closeNoSave()
 		},
@@ -537,14 +535,13 @@ export default {
 						this.editor.register(c);
 						engine.register(c);
 					});
-					this.editor.on("process connectioncreated connectionremoved", async () => {
-						if(this.editor !== null){
+					if(this.editor !== null) {
+						this.editor.on("process connectioncreated connectionremoved", async () => {
 							if (this.editor.silent) return;
-
 							await engine.abort();
 							await engine.process(this.editor.toJSON());
-						}
-					});
+						});
+					}
 					this.editor.view.resize();
 					this.currentModule.data = this.editor.toJSON();
 					this.currentModule = this.modules['index.rete'];
@@ -554,8 +551,9 @@ export default {
 
 					selectItems = []
 					this.protocol.fields.forEach(field=>{
+						console.log(field)
 						if(field.type!=='separator')
-							selectItems.push(field)
+							selectItems.push(field) //TODO: сюда как-то вледело число
 					})
 				}, 100)
 

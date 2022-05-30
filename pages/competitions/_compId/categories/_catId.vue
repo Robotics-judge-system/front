@@ -16,9 +16,9 @@
                         :headers="resultHeaders"
                         :items="attempts"
                         sort-by="attempt_score"
-                        sort-desc="false"
+                        :sort-desc="true"
                         hide-default-footer
-                        items-per-page="50"
+                        :items-per-page="50"
                     >
                     </v-data-table>
                 </v-card-text>
@@ -101,7 +101,7 @@
                                 <v-icon>mdi-list-status</v-icon>
                             </v-list-item-icon>
                             <v-list-item-content>
-	                            <v-col class="mt-5">
+	                            <v-col class="mt-5" v-if="createAttemptDialog.fields !== []">
 		                            <template v-for="(field, idx) in createAttemptDialog.fields">
 			                            <v-row align="center">
 				                            <v-text-field
@@ -129,9 +129,6 @@
 			                            </v-row>
 		                            </template>
 	                            </v-col>
-
-
-
 <!--                                <v-text-field
                                     v-model="createAttemptDialog.results.a"
                                     label="Результат 1"
@@ -317,7 +314,7 @@ TODO: всю эту мутню загнать в цикл
                         <v-card-title class="white--text pr-2">
                             Завершенные попытки по раунду
                             <v-spacer></v-spacer>
-<!--                            <v-btn @click="resultsDialog = true" icon color="green darken-2" class="mr-2"><v-icon>mdi-table-check</v-icon></v-btn>-->
+                            <v-btn @click="resultsDialog = true" icon color="green darken-2" class="mr-2"><v-icon>mdi-table-check</v-icon></v-btn>
                             <v-btn @click="createAttemptDialog.show = true" icon outlined small color="#FBAE3C"><v-icon>mdi-plus</v-icon></v-btn>
                         </v-card-title>
                         <v-card-text class="pa-0 ma-0">
@@ -328,8 +325,7 @@ TODO: всю эту мутню загнать в цикл
                                         {{teams.find(t => t.id === att.team_id).team_name}} - {{rounds.find(t=>t.id === att.attempt_id).name}}
                                     </v-card-title>
                                     <v-card-text>
-                                        <div>Результат 1: {{att.attempt_data.a}}</div>
-                                        <div>Результат 2: {{att.attempt_data.b}}</div>
+                                        <div v-for="(fieldValue, fieldName) in att.attempt_data">{{fieldName}}: {{fieldValue}}</div>
                                         <div>Время: {{att.attempt_time}}</div>
                                         <v-divider></v-divider>
                                         <div>Итоговый результат: {{att.attempt_score}}</div>
@@ -400,8 +396,8 @@ export default {
 		compId: 0,
 		catId: 0,
         resultHeaders:[
-            {text: 'Команда', value: 'team_id'},
-            {text: 'Раунд', value: 'attempt_id'},
+            {text: 'Команда', value: 'team_name'},
+            {text: 'Раунд', value: 'attempt_name'},
             {text: 'Время', value: 'attempt_time'},
             {text: 'Итоговый результат заезда', value: 'attempt_score'},
         ]
@@ -571,7 +567,10 @@ export default {
         },
         getAttemptsForTeam(compId, catId, teamId){
 		    this.$axios.$get(`/v1/competition/${compId}/category/${catId}/team/${teamId}/attempt`).then(attempts=>{
-		        console.log("Got attempts for: ", teamId, attempts)
+				for (let i = 0; i < attempts.length; i++) {
+					attempts[i].attempt_name = this.rounds.find(x => x.id === attempts[i].attempt_id).name
+				}
+			    console.log("Got attempts for: ", teamId, attempts)
                 this.attempts.push.apply(this.attempts, attempts)
             })
         },
@@ -617,7 +616,7 @@ export default {
 						this.createAttemptDialog.results[field.name] = 0
 					this.createAttemptDialog.fields.push(field)
 			})
-			//console.log(this.createAttemptDialog.results)
+			console.log("attdialog", this.createAttemptDialog)
 		}
 
 		/*getJudges(compId, catId){
