@@ -1,11 +1,11 @@
 <template>
-	<v-dialog v-model="show" fullscreen>
-		<div class="modules-example">
-			<v-btn text color="green darken-2">Сохранить</v-btn>
-			<v-btn text color="grey lighten-1">Вернуться</v-btn>
-			<v-btn @click="log(editor.toJSON().nodes)">Получить ноды</v-btn>
-			<div id="rete" class="node-editor"></div>
-		</div>
+	<v-dialog v-model="show" fullscreen persistent transition="dialog-bottom-transition">
+			<div class="modules-example">
+				<v-btn text color="green darken-2" @click="save">Сохранить</v-btn>
+				<v-btn text color="grey lighten-1" @click="closeNoSave">Вернуться</v-btn>
+<!--				<v-btn @click="log(editor.toJSON().nodes)">Получить ноды</v-btn>-->
+				<div id="rete" class="node-editor" style="background-color: #17011F;"></div>
+			</div>
 	</v-dialog>
 </template>
 
@@ -24,10 +24,10 @@ import Vue from "vue";
 let numSocket = new Rete.Socket("Number");
 let floatSocket = new Rete.Socket("Float");
 let selectItems = [
-	{name: "Бочки", id: 0},
-	{name: "Кубы", id: 1},
-	{name: "Деревья", id: 2},
-	{name: "Лампочки", id: 3},
+	{name: "Бочки"},
+	{name: "Кубы"},
+	{name: "Деревья"},
+	{name: "Лампочки"},
 ]
 let comparisonSelectItems = [ //TODO: rework value on idx
 	{name: "A < B", value: 0, short: '<'},
@@ -461,8 +461,8 @@ class IfComponent extends Rete.Component{
 
 export default {
 	name: "FormulaEditor",
-	//layout: "editor",
-	props:["show", "@formula-emit"],
+	layout: "editor",
+	props:["show", "@formula-emit", "protocol"],
 	data() {
 		return {
 			modules: {
@@ -482,24 +482,94 @@ export default {
 		log(s){
 			console.log(s)
 		},
-		async openModule(name) {
-			this.currentModule.data = this.editor.toJSON();
-			this.currentModule = this.modules[name];
-			await this.editor.fromJSON(this.currentModule.data);
-			this.editor.trigger("process");
-		},
 		initialData() {
 			return { id: "demo@0.1.0", nodes: {} };
+		},
+		save(){
+			this.$emit("formula-emit", this.editor.toJSON().nodes)
+			//console.log("sending: ", this.editor.toJSON())
+			this.closeNoSave()
+		},
+		closeNoSave(){
+			this.modules = {
+				"index.rete": {
+					data: {
+						id: "demo@0.1.0",
+						nodes: {
+						}
+					}
+				},
+			}
+			this.editor.clear()
+			this.editor = null
+			this.currentModule = {}
+			this.$emit("update:show", false)
 		}
 	},
-	mounted() {
+	watch:{
+		show(nv, lv){
+			console.log(nv)
+			if(nv){
+				setTimeout(async ()=>{
+					console.log("Initialising")
+					let container = document.querySelector("#rete");
+
+					this.editor = new Rete.NodeEditor("demo@0.1.0", container);
+					this.editor.use(ConnectionPlugin, { curvature: 0.4 });
+					this.editor.use(AlightRenderPlugin);
+					this.editor.use(ContextMenuPlugin);
+
+					let engine = new Rete.Engine("demo@0.1.0");
+
+					this.editor.use(ModulePlugin, { engine, modules: this.modules });
+
+					[
+						new NumComponent(),
+						new InputComponent(),
+						//new ModuleComponent(),
+						new OutputComponent(),
+						new AddComponent(),
+						new MultiplyComponent(),
+						new MinusComponent(),
+						new DivideComponent(),
+						new IfComponent(),
+					].map(c => {
+						this.editor.register(c);
+						engine.register(c);
+					});
+					this.editor.on("process connectioncreated connectionremoved", async () => {
+						if(this.editor !== null){
+							if (this.editor.silent) return;
+
+							await engine.abort();
+							await engine.process(this.editor.toJSON());
+						}
+					});
+					this.editor.view.resize();
+					this.currentModule.data = this.editor.toJSON();
+					this.currentModule = this.modules['index.rete'];
+					await this.editor.fromJSON(this.currentModule.data);
+					this.editor.trigger("process");
+					AreaPlugin.zoomAt(this.editor);
+
+					selectItems = []
+					this.protocol.fields.forEach(field=>{
+						if(field.type!=='separator')
+							selectItems.push(field)
+					})
+				}, 100)
+
+			}
+		}
+	},
+/*	mounted() {
 		let container = document.querySelector("#rete");
 
-		/*alight("#modules", {
+		/!*alight("#modules", {
 			modules: this.modules,
 			addModule: this.addModule,
 			openModule: this.openModule
-		});*/
+		});*!/
 
 		this.editor = new Rete.NodeEditor("demo@0.1.0", container);
 		this.editor.use(ConnectionPlugin, { curvature: 0.4 });
@@ -534,15 +604,16 @@ export default {
 		this.openModule("index.rete").then(() => {
 			AreaPlugin.zoomAt(this.editor);
 		});
-	}
+	}*/
 };
 </script>
 
 <style lang="scss" scoped>
 // Since node editor's parent must have a set height
 .modules-example {
-	height: 100vh;
+	height: calc(100vh - 36px);
 	width: 100vw;
+	background-color: #17011F;
 }
 
 // From codepen

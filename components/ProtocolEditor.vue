@@ -1,5 +1,5 @@
 <template>
-    <v-dialog v-model="show" width="700px" persistent>
+    <v-dialog v-model="show" width="700px" persistent >
         <v-card>
             <v-card-title>
                 Название протокола:

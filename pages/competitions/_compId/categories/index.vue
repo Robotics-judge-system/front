@@ -22,12 +22,12 @@
 										{{cat.name}}
 									</v-card-title>
 									<v-card-text>
-										<div>
+<!--										<div>
 											Дата начала: {{moment(cat.date_from).format("dddd, MMMM Do YYYY, hh:mm:ss") }}
 										</div>
 										<div>
 											Дата окончания: {{moment(cat.date_to).format("dddd, MMMM Do YYYY, hh:mm:ss") }}
-										</div>
+										</div>-->
 									</v-card-text>
 								</v-card>
 							</perfect-scrollbar>

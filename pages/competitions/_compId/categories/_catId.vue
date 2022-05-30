@@ -1,7 +1,7 @@
 <template>
 	<v-container fluid class="fill-height fill-width ma-0 pa-0 px-6">
         <ProtocolEditor :show.sync="protocolEditorDialog.show" @protocol-emit="passToFormulaEditor"></ProtocolEditor>
-		<FormulaEditor :show.sync="formulaEditorDialog.show" @formula-emit="saveFormulaProtocol"></FormulaEditor>
+		<FormulaEditor :show.sync="formulaEditorDialog.show" @formula-emit="saveFormulaProtocol" :protocol="protocolEditorDialog.protocol"></FormulaEditor>
         <v-dialog v-model="resultsDialog" width="700px">
             <v-card>
                 <v-card-title>
@@ -32,12 +32,13 @@
                     <v-btn @click="closeCreateRoundDialog" icon color="red darken-2"><v-icon>mdi-close</v-icon></v-btn>
                 </v-card-title>
                 <v-card-text>
+	                <v-text-field v-model="createRoundDialog.name" outlined dense label="Название" ></v-text-field>
                     <v-select
                         v-model="createRoundDialog.formula"
                         :items="formulas"
                         item-text="name"
                         item-value="id"
-                        hint="Формула-протокол"
+	                    label="Формула-протокол"
                         dense
                         outlined
                     >
@@ -50,7 +51,7 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-        <v-dialog v-model="createAttemptDialog.show" width="500px">
+        <v-dialog v-model="createAttemptDialog.show" width="650px" persistent>
             <v-card>
                 <v-card-title>
                     Добавить попытку в раунде команде
@@ -69,7 +70,7 @@
                                     :items="teams"
                                     item-text="team_name"
                                     item-value="id"
-                                    hint="Команда"
+                                    label="Команда"
                                     dense
                                     outlined
                                 >
@@ -86,9 +87,10 @@
                                     :items="rounds"
                                     item-text="name"
                                     item-value="id"
-                                    hint="Раунд"
+                                    label="Раунд"
                                     dense
                                     outlined
+                                    @change="getFieldsFromRound"
                                 >
                                 </v-select>
                             </v-list-item-content>
@@ -99,20 +101,51 @@
                                 <v-icon>mdi-list-status</v-icon>
                             </v-list-item-icon>
                             <v-list-item-content>
-                                <v-text-field
+	                            <v-col class="mt-5">
+		                            <template v-for="(field, idx) in createAttemptDialog.fields">
+			                            <v-row align="center">
+				                            <v-text-field
+					                            v-if="field.type === 'value' || field.type === 'time'"
+					                            v-model="createAttemptDialog.results[field.name]"
+					                            :label="field.name"
+					                            dense
+					                            outlined
+					                            type="number"
+					                            class="mb-n3"
+				                            >
+				                            </v-text-field>
+				                            <v-checkbox
+					                            v-else-if="field.type === 'checkbox'"
+					                            v-model="createAttemptDialog.results[field.name]"
+					                            :label="field.name"
+					                            class="ma-0 mt-2"
+				                            >
+				                            </v-checkbox>
+				                            <div v-else-if="field.type === 'separator'" style="font-size: 21px; width: 100%;">
+					                            <v-divider class="mb-2 mt-3"></v-divider>
+					                            ⦁   {{field.name}}
+					                            <v-divider class="mt-2 mb-3"></v-divider>
+				                            </div>
+			                            </v-row>
+		                            </template>
+	                            </v-col>
+
+
+
+<!--                                <v-text-field
                                     v-model="createAttemptDialog.results.a"
-                                    hint="Результат 1"
+                                    label="Результат 1"
                                     dense
                                     outlined
                                 >
                                 </v-text-field>
                                 <v-text-field
                                     v-model="createAttemptDialog.results.b"
-                                    hint="Результат 2"
+                                    label="Результат 2"
                                     dense
                                     outlined
                                 >
-                                </v-text-field>
+                                </v-text-field>-->
                             </v-list-item-content>
                         </v-list-item>
                     </v-list>
@@ -316,6 +349,7 @@ import DummyAdd from "@/components/DummyAdd";
 import Util from "@/mixin/Util"
 import { mapActions } from "vuex";
 import ProtocolEditor from "@/components/ProtocolEditor";
+import FormulaEditor from "@/components/FormulaEditor";
 export default {
 	layout: "default",
 	components: {ProtocolEditor, DummyAdd},
@@ -338,15 +372,14 @@ export default {
             show: false,
             team: 0,
             round: 0,
-            results: {
-                a: 0,
-                b: 0,
-            }
+            results: {},
+	        fields: [],
         },
         createRoundDialog:{
             show: false,
             formula: 0,
             roundId: 0,
+	        name: '',
         },
         protocolEditorDialog:{
             show: false,
@@ -390,6 +423,10 @@ export default {
 		...mapActions({
 			getEntity: "getEntity"
 		}),
+
+		log(s){
+			console.log(s)
+		},
 
         //Teams
 		getTeams(compId, catId){
@@ -450,12 +487,6 @@ export default {
 		},
 		addFormula(compId, catId){
 		    this.protocolEditorDialog.show = true
-		    //this.$router.push("/formulaEditor")
-			/*this.$axios.$post(`/v1/competition/${compId}/category/${catId}/formula-protocol`, {name: `test${this.formulas.length}`}).then(res=>{
-				this.getFormulas(compId, catId)
-			}).catch(err=>{
-				this.$toast.error(this.getHumanMessage(err))
-			})*/
 		},
 		passToFormulaEditor(protocol){
 			console.log("Result protocol: ", protocol)
@@ -464,7 +495,20 @@ export default {
 		},
 		saveFormulaProtocol(formula){
 			this.formulaEditorDialog.formula = formula
-			console.log("Result formula: ", formula)
+			this.protocolEditorDialog.protocol.fields.forEach(ent => {
+				delete ent.icon
+			})
+			let res = {
+				name: this.protocolEditorDialog.protocol.name,
+				protocol_description: this.protocolEditorDialog.protocol.fields,
+				formula_description: this.formulaEditorDialog.formula
+			}
+			console.log("Result obj: ", res)
+			this.$axios.$post(`/v1/competition/${this.compId}/category/${this.catId}/formula-protocol`, res).then(res=>{
+				this.getFormulas(this.compId, this.catId)
+			}).catch(err=>{
+				this.$toast.error(this.getHumanMessage(err))
+			})
 		},
         deleteFormula(compId, catId, protId){
             this.$axios.$delete(`/v1/competition/${compId}/category/${catId}/formula-protocol/${protId}`).then(res=>{
@@ -483,8 +527,8 @@ export default {
 				this.$toast.error(this.getHumanMessage(err))
 			})
 		},
-        addRound(compId, catId, formulaId, name){
-            return this.$axios.$post(`/v1/competition/${compId}/category/${catId}/attempt/`, { name:`testRound${this.rounds.length}`})
+        addRound(compId, catId, name){
+            return this.$axios.$post(`/v1/competition/${compId}/category/${catId}/attempt/`, { name: name})
         },
         deleteRound(compId, catId, attId){
             this.$axios.$delete(`/v1/competition/${compId}/category/${catId}/attempt/${attId}`).then(res=>{
@@ -505,10 +549,12 @@ export default {
 		    this.createRoundDialog = {
 		        show: false,
                 formula: 0,
+			    name: '',
+			    roundId: 0,
             }
         },
         submitRound(){
-            this.addRound(this.compId, this.catId).then(res=>{
+            this.addRound(this.compId, this.catId, this.createRoundDialog.name).then(res=>{
                 this.attachFormulaToRound(this.compId, this.catId, res.id, this.createRoundDialog.formula).then(res=>{
                     this.activateRound(this.compId, this.catId, res.id).then(res=>{
                         this.getRounds(this.compId, this.catId)
@@ -533,6 +579,13 @@ export default {
 		    this.$axios.$delete(`/v1/competition/:competition_id/category/:category_id/team/:team_id/attempt/:attempt_id`)
         },
         submitAttempt(){
+	        Object.entries(this.createAttemptDialog.results).forEach(entry =>{
+		        const [key, value] = entry;
+				if(typeof(value) === 'string')
+					this.createAttemptDialog.results[key] = parseInt(value)
+		        else if(typeof(value) === 'boolean')
+					this.createAttemptDialog.results[key] = (value ? 1 : 0)
+	        })
 		    this.addAttempt(
 		        this.compId,
                 this.catId,
@@ -548,11 +601,25 @@ export default {
                 team: 0,
                 round: 0,
                 results: {
-		            a: 0,
-                    b: 0,
-                }
+
+                },
+			    fields: [],
             }
-        }
+        },
+		getFieldsFromRound(){
+			console.log("getting fields")
+			this.createAttemptDialog.fields = []
+			this.createAttemptDialog.results = {}
+			this.rounds.find(x => x.id===this.createAttemptDialog.round)
+				.formula_protocol.protocol_description.forEach(field => {
+					//console.log(field)
+					if(field.type!=='separator')
+						this.createAttemptDialog.results[field.name] = 0
+					this.createAttemptDialog.fields.push(field)
+			})
+			//console.log(this.createAttemptDialog.results)
+		}
+
 		/*getJudges(compId, catId){
 			this.$axios.$get(`/v1/competition/${compId}/category/${catId}/judges`).then(res=>{
 				this.judges = res
